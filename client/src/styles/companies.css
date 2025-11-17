@@ -1,0 +1,157 @@
+/* client/src/styles/companies.css */
+
+.companies-page .filters-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.companies-page .filters-row input,
+.companies-page .filters-row select {
+  flex: 1;
+  min-width: 150px;
+}
+
+.company-list {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.company-card {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.company-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.06);
+}
+
+.company-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.company-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4caf7b, #96e6a1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.company-name {
+  font-weight: 600;
+}
+
+.company-industry {
+  font-size: 0.8rem;
+  color: var(--muted-text, #6b7280);
+}
+
+.company-location {
+  font-size: 0.8rem;
+  color: var(--muted-text, #6b7280);
+  margin-top: 0.25rem;
+}
+
+.company-meta-small {
+  font-size: 0.8rem;
+  color: var(--muted-text, #6b7280);
+}
+
+/* details */
+
+.company-details-layout {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.company-details-main {
+  flex: 2;
+  min-width: 260px;
+}
+
+.company-details-sidebar {
+  flex: 1;
+  min-width: 240px;
+}
+
+.company-hero {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.company-hero-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #4caf7b, #96e6a1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.company-hero-text h1 {
+  margin: 0;
+}
+
+.company-hero-text p {
+  margin: 0.1rem 0;
+  font-size: 0.9rem;
+  color: var(--muted-text, #6b7280);
+}
+
+.company-links a {
+  display: inline-block;
+  margin-right: 0.75rem;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.company-about {
+  font-size: 0.95rem;
+  white-space: pre-line;
+}
+
+.company-jobs-list .job-card {
+  cursor: pointer;
+}
+
+/* form */
+
+.company-form-page .form-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.company-form-page .form-grid label {
+  font-size: 0.9rem;
+}
+
+.company-form-page textarea {
+  min-height: 120px;
+}
+
+/* responsive */
+
+@media (max-width: 900px) {
+  .company-details-layout {
+    flex-direction: column;
+  }
+}

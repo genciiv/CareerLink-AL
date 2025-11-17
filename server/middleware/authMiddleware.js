@@ -5,8 +5,10 @@ import User from "../models/User.js";
 export async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization || "";
 
+  console.log("Authorization header:", authHeader);
+
   if (!authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Nuk je i autorizuar" });
+    return res.status(401).json({ message: "Nuk je i autorizuar (no token)" });
   }
 
   const token = authHeader.split(" ")[1];
@@ -17,7 +19,9 @@ export async function requireAuth(req, res, next) {
 
     const user = await User.findById(payload.userId);
     if (!user) {
-      return res.status(401).json({ message: "Përdoruesi nuk u gjet" });
+      return res
+        .status(401)
+        .json({ message: "Nuk je i autorizuar (user not found)" });
     }
 
     req.user = user;
@@ -26,9 +30,21 @@ export async function requireAuth(req, res, next) {
     console.error("Auth error:", err.message);
     return res
       .status(401)
-      .json({ message: "Sesioni ka skaduar ose është i pavlefshëm" });
+      .json({ message: "Nuk je i autorizuar (token invalid ose ka skaduar)" });
   }
 }
 
-// për kompatibilitet nëse diku përdoret 'protect'
+// alias, nëse diku përdoret emri i vjetër
 export const protect = requireAuth;
+
+// middleware për role specifike (p.sh. employer)
+export function requireRole(role) {
+  return (req, res, next) => {
+    if (!req.user || req.user.role !== role) {
+      return res
+        .status(403)
+        .json({ message: "Nuk ke të drejta për këtë veprim" });
+    }
+    next();
+  };
+}

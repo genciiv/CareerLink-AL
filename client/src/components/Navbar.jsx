@@ -1,115 +1,152 @@
 // client/src/components/Navbar.jsx
-import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 function Navbar({ theme, onToggleTheme }) {
-  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // Lexo user-in nga localStorage sa herë ndryshon URL-ja
-  useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      try {
-        setCurrentUser(JSON.parse(stored));
-      } catch {
-        setCurrentUser(null);
-      }
-    } else {
-      setCurrentUser(null);
-    }
-  }, [location.pathname]); // ⬅ rifreskohet në çdo navigim
+  const userRaw = localStorage.getItem("user");
+  const user = userRaw ? JSON.parse(userRaw) : null;
+  const isLoggedIn = !!localStorage.getItem("token");
+  const role = user?.role || "candidate"; // candidate | employer | admin
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    setCurrentUser(null);
     navigate("/login");
   };
 
-  const goToProfile = () => {
-    navigate("/profile");
-  };
+  const navLinkClass = ({ isActive }) =>
+    "nav-link" + (isActive ? " nav-link-active" : "");
 
   return (
     <header className="navbar">
       <div className="navbar-inner">
         {/* Logo */}
-        <Link to="/" className="logo">
-          Career<span>Link</span>
-        </Link>
+        <div className="nav-left">
+          <Link to="/" className="nav-logo">
+            <span className="logo-badge">Career</span>
+            <span className="logo-accent">Link</span>
+          </Link>
 
-        {/* Menu qendrore */}
-        <nav className="nav-links">
-          <NavLink to="/jobs" className="nav-link">
-            Punë
-          </NavLink>
-          <NavLink to="/companies" className="nav-link">
-            Kompani
-          </NavLink>
-          <NavLink to="/feed" className="nav-link">
-            Rrjeti
-          </NavLink>
-        </nav>
+          {/* Linkët kryesorë – të dukshëm për të gjithë */}
+          <nav className="nav-links">
+            <NavLink to="/jobs" className={navLinkClass}>
+              Punë
+            </NavLink>
+            <NavLink to="/companies" className={navLinkClass}>
+              Kompani
+            </NavLink>
+            <NavLink to="/feed" className={navLinkClass}>
+              Rrjeti
+            </NavLink>
+          </nav>
+        </div>
 
-        {/* Djathtas: theme toggle + auth info */}
+        {/* Aksionet në të djathtë */}
         <div className="nav-right">
+          {/* Dark / light toggle */}
           <button
             type="button"
-            className="theme-toggle"
+            className="icon-button theme-toggle"
             onClick={onToggleTheme}
-            aria-label="Ndrysho temën"
+            aria-label="Ndërro temën"
           >
-            {theme === "dark" ? "☀️" : "🌙"}
+            {theme === "dark" ? "🌙" : "☀️"}
           </button>
 
-          {currentUser ? (
-            // 🔒 Kur je i futur – vetëm Profili + Dil
-            <div className="nav-auth-logged">
+          {!isLoggedIn && (
+            <>
               <button
                 type="button"
-                className="nav-user"
-                onClick={goToProfile}
-                title="Shko te profili im"
+                className="btn-ghost"
+                onClick={() => navigate("/login")}
               >
-                <div className="nav-avatar">
-                  {currentUser.fullName
-                    ? currentUser.fullName.charAt(0).toUpperCase()
+                Hyr
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => navigate("/register")}
+              >
+                Regjistrohu
+              </button>
+            </>
+          )}
+
+          {isLoggedIn && (
+            <>
+              {/* Linke specifike për rolin */}
+
+              {role === "candidate" && (
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={() => navigate("/applications")}
+                >
+                  Aplikimet e mia
+                </button>
+              )}
+
+              {(role === "employer" || role === "admin") && (
+                <>
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    onClick={() => navigate("/employer/jobs")}
+                  >
+                    Punët e mia
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    onClick={() => navigate("/employer/company")}
+                  >
+                    Profili kompanisë
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => navigate("/employer/jobs/new")}
+                  >
+                    Posto punë
+                  </button>
+                </>
+              )}
+
+              {/* “Chip” i profilit + Dil */}
+
+              <button
+                type="button"
+                className="profile-chip"
+                onClick={() => navigate("/profile")}
+              >
+                <span className="profile-avatar">
+                  {user?.fullName
+                    ? user.fullName.charAt(0).toUpperCase()
                     : "U"}
-                </div>
-                <div className="nav-user-info">
-                  <span className="nav-user-name">
-                    {currentUser.fullName || "Përdorues"}
+                </span>
+                <span className="profile-info">
+                  <span className="profile-name">
+                    {user?.fullName || "Përdorues"}
                   </span>
-                  <span className="nav-user-role">
-                    {currentUser.role === "employer"
-                      ? "Kompani"
-                      : currentUser.role === "admin"
+                  <span className="profile-role">
+                    {role === "employer"
+                      ? "Employer"
+                      : role === "admin"
                       ? "Admin"
                       : "Kandidat"}
                   </span>
-                </div>
+                </span>
               </button>
 
               <button
-                className="btn btn-ghost small"
                 type="button"
+                className="btn-ghost"
                 onClick={handleLogout}
               >
                 Dil
               </button>
-            </div>
-          ) : (
-            // 🔓 Kur NUK je i futur – Hyr / Regjistrohu
-            <div className="nav-actions">
-              <NavLink to="/login" className="btn btn-ghost">
-                Hyr
-              </NavLink>
-              <NavLink to="/register" className="btn btn-primary">
-                Regjistrohu
-              </NavLink>
-            </div>
+            </>
           )}
         </div>
       </div>

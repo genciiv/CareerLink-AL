@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Env files (mos i ngarko kurrë)
+.env
+server/.env
+client/.env
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs
+*.log
+
+# Sistemi i editorëve
+.DS_Store
+Thumbs.db
+
+# Output i build-it
+dist/
+client/dist/
+server/dist/
+
+# Vite cache
+client/.vite/

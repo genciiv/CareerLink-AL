@@ -5,6 +5,11 @@ const applicantSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     coverLetter: { type: String, default: "" },
+    status: {
+      type: String,
+      enum: ["applied", "reviewed", "accepted", "rejected"],
+      default: "applied",
+    },
     createdAt: { type: Date, default: Date.now },
   },
   { _id: true }
@@ -14,8 +19,8 @@ const jobSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     companyName: { type: String, required: true },
-    location: { type: String, default: "" }, // p.sh. "Tiranë, Shqipëri"
-    city: { type: String, default: "" }, // p.sh. "Tiranë"
+    location: { type: String, default: "" },
+    city: { type: String, default: "" },
 
     type: {
       type: String,

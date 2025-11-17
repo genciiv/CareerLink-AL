@@ -7,10 +7,15 @@ import Navbar from "./components/Navbar.jsx";
 import Home from "./pages/Home.jsx";
 import Jobs from "./pages/Jobs.jsx";
 import Companies from "./pages/Companies.jsx";
+import CompanyDetails from "./pages/CompanyDetails.jsx";
 import Feed from "./pages/Feed.jsx";
 import Profile from "./pages/Profile.jsx";
 import JobDetails from "./pages/JobDetails.jsx";
+import MyApplications from "./pages/MyApplications.jsx";
+
 import JobForm from "./pages/employer/JobForm.jsx";
+import CompanyForm from "./pages/employer/CompanyForm.jsx";
+import EmployerJobs from "./pages/employer/EmployerJobs.jsx";
 
 import Login from "./pages/auth/Login.jsx";
 import Register from "./pages/auth/Register.jsx";
@@ -49,6 +54,7 @@ function App() {
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/jobs/:id" element={<JobDetails />} />
           <Route path="/companies" element={<Companies />} />
+          <Route path="/companies/:id" element={<CompanyDetails />} />
           <Route path="/feed" element={<Feed />} />
 
           {/* Vetëm kur NUK je i loguar */}
@@ -78,6 +84,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/applications"
+            element={
+              <ProtectedRoute>
+                <MyApplications />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Vetëm employer / admin */}
           <Route
@@ -85,6 +99,22 @@ function App() {
             element={
               <EmployerRoute>
                 <JobForm />
+              </EmployerRoute>
+            }
+          />
+          <Route
+            path="/employer/company"
+            element={
+              <EmployerRoute>
+                <CompanyForm />
+              </EmployerRoute>
+            }
+          />
+          <Route
+            path="/employer/jobs"
+            element={
+              <EmployerRoute>
+                <EmployerJobs />
               </EmployerRoute>
             }
           />

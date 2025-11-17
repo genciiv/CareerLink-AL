@@ -1,6 +1,8 @@
 // server/controllers/jobController.js
 import Job from "../models/Job.js";
 
+// ===================== LISTIMI & DETAJET =====================
+
 // GET /api/jobs
 export async function listJobs(req, res) {
   try {
@@ -53,6 +55,8 @@ export async function getJobById(req, res) {
     res.status(500).json({ message: "Gabim serveri" });
   }
 }
+
+// ===================== KRIJIMI & MENAXHIMI NGA EMPLOYER =====================
 
 // POST /api/jobs  (vetëm employer)
 export async function createJob(req, res) {
@@ -186,6 +190,86 @@ export async function deleteJob(req, res) {
   }
 }
 
+// GET /api/jobs/my  (punët e mia – employer dashboard)
+export async function getMyJobs(req, res) {
+  try {
+    const jobs = await Job.find({ createdBy: req.userId })
+      .sort({ createdAt: -1 })
+      .populate("applicants.user", "fullName email");
+
+    res.json(jobs);
+  } catch (err) {
+    console.error("getMyJobs error:", err.message);
+    res.status(500).json({ message: "Gabim serveri gjatë marrjes së punëve" });
+  }
+}
+
+// GET /api/jobs/:id/applicants  (aplikantët e një pune – employer, owner)
+export async function getJobApplicants(req, res) {
+  try {
+    const job = await Job.findById(req.params.id).populate(
+      "applicants.user",
+      "fullName email"
+    );
+    if (!job) return res.status(404).json({ message: "Puna nuk u gjet" });
+
+    if (job.createdBy.toString() !== req.userId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Nuk mund të shohësh aplikantët e kësaj pune" });
+    }
+
+    res.json(job);
+  } catch (err) {
+    console.error("getJobApplicants error:", err.message);
+    res
+      .status(500)
+      .json({ message: "Gabim serveri gjatë marrjes së aplikantëve" });
+  }
+}
+
+// PATCH /api/jobs/:jobId/applicants/:applicantId/status
+export async function updateApplicationStatus(req, res) {
+  try {
+    const { jobId, applicantId } = req.params;
+    const { status } = req.body;
+
+    const allowed = ["applied", "reviewed", "accepted", "rejected"];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ message: "Status i pavlefshëm" });
+    }
+
+    const job = await Job.findById(jobId).populate(
+      "applicants.user",
+      "fullName email"
+    );
+    if (!job) return res.status(404).json({ message: "Puna nuk u gjet" });
+
+    if (job.createdBy.toString() !== req.userId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Nuk mund të ndryshosh statusin e kësaj pune" });
+    }
+
+    const applicant = job.applicants.id(applicantId);
+    if (!applicant) {
+      return res.status(404).json({ message: "Aplikanti nuk u gjet" });
+    }
+
+    applicant.status = status;
+    await job.save();
+
+    res.json(job);
+  } catch (err) {
+    console.error("updateApplicationStatus error:", err.message);
+    res
+      .status(500)
+      .json({ message: "Gabim serveri gjatë ndryshimit të statusit" });
+  }
+}
+
+// ===================== APLIKIMI NGA KANDIDATET =====================
+
 // POST /api/jobs/:id/apply  (candidate)
 export async function applyToJob(req, res) {
   try {
@@ -206,6 +290,7 @@ export async function applyToJob(req, res) {
     job.applicants.push({
       user: req.userId,
       coverLetter: coverLetter || "",
+      status: "applied",
     });
 
     await job.save();
@@ -214,5 +299,43 @@ export async function applyToJob(req, res) {
   } catch (err) {
     console.error("applyToJob error:", err.message);
     res.status(500).json({ message: "Gabim serveri gjatë aplikimit" });
+  }
+}
+
+// GET /api/jobs/my-applications  (aplikimet e mia – kandidat)
+export async function getMyApplications(req, res) {
+  try {
+    const jobs = await Job.find({ "applicants.user": req.userId });
+
+    const applications = [];
+
+    jobs.forEach((job) => {
+      job.applicants.forEach((app) => {
+        if (app.user.toString() === req.userId.toString()) {
+          applications.push({
+            jobId: job._id,
+            title: job.title,
+            companyName: job.companyName,
+            city: job.city,
+            location: job.location,
+            type: job.type,
+            mode: job.mode,
+            appliedAt: app.createdAt,
+            status: app.status,
+            coverLetter: app.coverLetter,
+          });
+        }
+      });
+    });
+
+    // më të fundit të parët
+    applications.sort(
+      (a, b) => new Date(b.appliedAt) - new Date(a.appliedAt)
+    );
+
+    res.json(applications);
+  } catch (err) {
+    console.error("getMyApplications error:", err.message);
+    res.status(500).json({ message: "Gabim serveri gjatë marrjes së aplikimeve" });
   }
 }

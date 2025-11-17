@@ -13,31 +13,44 @@ function Register() {
     role: "candidate",
   });
 
-  const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg("");
-    setLoading(true);
+    setError("");
+
+    if (!form.fullName || !form.email || !form.password) {
+      setError("Plotëso emrin, email-in dhe fjalëkalimin");
+      return;
+    }
 
     try {
-      const { data } = await api.post("/auth/register", form);
+      setLoading(true);
 
+      const { data } = await api.post("/auth/register", {
+        fullName: form.fullName,
+        email: form.email,
+        password: form.password,
+        role: form.role,
+      });
+
+      // Ruaj token + user në localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      navigate("/");
-    } catch (error) {
-      setErrorMsg(
-        error.response?.data?.message || "Gabim gjatë regjistrimit"
+      // Pas regjistrimit → dërgo direkt te profili
+      navigate("/profile");
+    } catch (err) {
+      console.error(err);
+      setError(
+        err.response?.data?.message ||
+          "Gabim gjatë regjistrimit. Provo përsëri."
       );
     } finally {
       setLoading(false);
@@ -52,7 +65,11 @@ function Register() {
           Bashkohu me profesionistë, kompani dhe studentë në CareerLink.
         </p>
 
-        {errorMsg && <p style={{ color: "red" }}>{errorMsg}</p>}
+        {error && (
+          <p style={{ color: "red", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
+            {error}
+          </p>
+        )}
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
@@ -60,10 +77,9 @@ function Register() {
             <input
               type="text"
               name="fullName"
-              placeholder="Emri i plotë"
+              placeholder="Emri yt i plotë"
               value={form.fullName}
               onChange={handleChange}
-              required
             />
           </label>
 
@@ -75,7 +91,6 @@ function Register() {
               placeholder="you@example.com"
               value={form.email}
               onChange={handleChange}
-              required
             />
           </label>
 
@@ -87,20 +102,27 @@ function Register() {
               placeholder="********"
               value={form.password}
               onChange={handleChange}
-              required
             />
           </label>
 
           <label>
             Roli
-            <select name="role" value={form.role} onChange={handleChange}>
+            <select
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+            >
               <option value="candidate">Kandidat</option>
               <option value="employer">Kompani / Rekrutues</option>
             </select>
           </label>
 
-          <button className="btn btn-primary full" disabled={loading}>
-            {loading ? "Duke u regjistruar..." : "Regjistrohu"}
+          <button
+            type="submit"
+            className="btn btn-primary full"
+            disabled={loading}
+          >
+            {loading ? "Duke krijuar llogarinë..." : "Regjistrohu"}
           </button>
         </form>
 

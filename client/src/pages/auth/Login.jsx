@@ -11,30 +11,41 @@ function Login() {
     password: "",
   });
 
-  const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg("");
-    setLoading(true);
+    setError("");
+
+    if (!form.email || !form.password) {
+      setError("Shkruaj email dhe fjalëkalim");
+      return;
+    }
 
     try {
-      const { data } = await api.post("/auth/login", form);
+      setLoading(true);
+      const { data } = await api.post("/auth/login", {
+        email: form.email,
+        password: form.password,
+      });
 
+      // Ruaj token + user në localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      navigate("/");
-    } catch (error) {
-      setErrorMsg(error.response?.data?.message || "Gabim gjatë hyrjes");
+      // ⬇⬇⬇ KETU ISHTE REDIRECT TEK "/" – TANI E COJME TEK /profile
+      navigate("/profile");
+    } catch (err) {
+      console.error(err);
+      setError(
+        err.response?.data?.message || "Gabim gjatë autentikimit. Provo përsëri."
+      );
     } finally {
       setLoading(false);
     }
@@ -44,9 +55,15 @@ function Login() {
     <div className="page auth-page">
       <div className="auth-card">
         <h2>Hyr në CareerLink</h2>
-        <p className="auth-subtitle">Mirë se u ktheve! Fut kredencialet e tua.</p>
+        <p className="auth-subtitle">
+          Mirë se u ktheve! Fut kredencialet e tua për të vazhduar.
+        </p>
 
-        {errorMsg && <p style={{ color: "red" }}>{errorMsg}</p>}
+        {error && (
+          <p style={{ color: "red", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
+            {error}
+          </p>
+        )}
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
@@ -57,7 +74,6 @@ function Login() {
               placeholder="you@example.com"
               value={form.email}
               onChange={handleChange}
-              required
             />
           </label>
 
@@ -69,11 +85,14 @@ function Login() {
               placeholder="********"
               value={form.password}
               onChange={handleChange}
-              required
             />
           </label>
 
-          <button className="btn btn-primary full" disabled={loading}>
+          <button
+            type="submit"
+            className="btn btn-primary full"
+            disabled={loading}
+          >
             {loading ? "Duke u futur..." : "Hyr"}
           </button>
         </form>

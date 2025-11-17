@@ -3,67 +3,56 @@ import mongoose from "mongoose";
 
 const experienceSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true },        // p.sh. Frontend Developer
-    company: { type: String, required: true },      // p.sh. CareerLink AL
-    location: { type: String },
-    startDate: { type: String },                    // mund t'i mbajmë si string p.sh. "Jan 2023"
-    endDate: { type: String },
-    current: { type: Boolean, default: false },
-    description: { type: String },
+    jobTitle: { type: String, required: true },
+    company: { type: String, required: true },
+    period: { type: String, default: "" }, // p.sh. "2023 - Vazhdon"
+    location: { type: String, default: "" },
+    description: { type: String, default: "" },
   },
-  { _id: true } // kemi nevojë për id të experience
+  { _id: true }
 );
 
 const projectSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },         // p.sh. EcoLens Platform
-    link: { type: String },                         // p.sh. https://...
-    description: { type: String },
-    from: { type: String },
-    to: { type: String },
+    name: { type: String, required: true },
+    description: { type: String, default: "" },
+    link: { type: String, default: "" },
   },
   { _id: true }
 );
 
 const userSchema = new mongoose.Schema(
   {
-    fullName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      index: true,
-    },
-    passwordHash: {
-      type: String,
-      required: true,
-    },
+    fullName: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    passwordHash: { type: String, required: true },
     role: {
       type: String,
       enum: ["candidate", "employer", "admin"],
       default: "candidate",
     },
 
-    // 🔹 Fusha bazë të profilit
-    headline: { type: String, default: "" },        // p.sh. "Junior Web Developer"
-    location: { type: String, default: "" },        // p.sh. "Fier, Shqipëri"
+    // Profile fields
+    headline: { type: String, default: "" }, // p.sh. "Full Stack Developer"
+    location: { type: String, default: "" },
     bio: { type: String, default: "" },
 
-    // 🔹 Skills si array strings
-    skills: { type: [String], default: [] },
+    skills: {
+      type: [String],
+      default: [],
+    },
 
-    // 🔹 Experience & Projects si sub-dokumente
-    experiences: { type: [experienceSchema], default: [] },
-    projects: { type: [projectSchema], default: [] },
+    experiences: {
+      type: [experienceSchema],
+      default: [],
+    },
+
+    projects: {
+      type: [projectSchema],
+      default: [],
+    },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchema);

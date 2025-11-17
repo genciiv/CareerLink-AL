@@ -1,9 +1,11 @@
 // server/routes/profileRoutes.js
 import express from "express";
-import { protect } from "../middleware/authMiddleware.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 import {
   getMyProfile,
-  updateMyProfile,
+  updateProfileBasics,
+  addSkill,
+  removeSkill,
   addExperience,
   deleteExperience,
   addProject,
@@ -12,16 +14,19 @@ import {
 
 const router = express.Router();
 
-// /api/profile/me
-router.get("/me", protect, getMyProfile);
-router.put("/me", protect, updateMyProfile);
+// Të gjitha këto rruge kërkojnë auth
+router.use(requireAuth);
 
-// /api/profile/experience
-router.post("/experience", protect, addExperience);
-router.delete("/experience/:id", protect, deleteExperience);
+router.get("/me", getMyProfile);
+router.put("/", updateProfileBasics);
 
-// /api/profile/project
-router.post("/project", protect, addProject);
-router.delete("/project/:id", protect, deleteProject);
+router.post("/skills", addSkill);
+router.delete("/skills/:skillName", removeSkill);
+
+router.post("/experiences", addExperience);
+router.delete("/experiences/:expId", deleteExperience);
+
+router.post("/projects", addProject);
+router.delete("/projects/:projectId", deleteProject);
 
 export default router;

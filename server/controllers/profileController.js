@@ -1,146 +1,157 @@
 // server/controllers/profileController.js
 import User from "../models/User.js";
 
-/**
- * GET /api/profile/me
- * Kthen profilin e përdoruesit aktual
- */
-export const getMyProfile = async (req, res) => {
+// GET /api/profile/me
+export async function getMyProfile(req, res) {
   try {
     const user = await User.findById(req.userId).select("-passwordHash");
     if (!user) {
-      return res.status(404).json({ message: "Profili nuk u gjet" });
+      return res.status(404).json({ message: "Përdoruesi nuk u gjet" });
     }
-    res.json({ user });
-  } catch (error) {
-    console.error("getMyProfile error:", error.message);
+    res.json(user);
+  } catch (err) {
+    console.error("getMyProfile error:", err.message);
     res.status(500).json({ message: "Gabim serveri" });
   }
-};
+}
 
-/**
- * PUT /api/profile/me
- * Përditëson fushat bazë: headline, location, bio, skills
- */
-export const updateMyProfile = async (req, res) => {
+// PUT /api/profile  (headline, location, bio)
+export async function updateProfileBasics(req, res) {
   try {
-    const { headline, location, bio, skills } = req.body;
+    const { headline, location, bio } = req.body;
 
-    const update = {};
-    if (headline !== undefined) update.headline = headline;
-    if (location !== undefined) update.location = location;
-    if (bio !== undefined) update.bio = bio;
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { headline, location, bio },
+      { new: true }
+    ).select("-passwordHash");
 
-    // skills vjen si string "JS, React, Node" ose array
-    if (skills !== undefined) {
-      if (Array.isArray(skills)) {
-        update.skills = skills;
-      } else if (typeof skills === "string") {
-        update.skills = skills
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-      }
+    res.json(user);
+  } catch (err) {
+    console.error("updateProfileBasics error:", err.message);
+    res.status(500).json({ message: "Gabim serveri" });
+  }
+}
+
+// POST /api/profile/skills  { skill }
+export async function addSkill(req, res) {
+  try {
+    const { skill } = req.body;
+    if (!skill) {
+      return res.status(400).json({ message: "Shkruaj një aftësi" });
     }
 
     const user = await User.findByIdAndUpdate(
       req.userId,
-      { $set: update },
-      { new: true, runValidators: true }
+      { $addToSet: { skills: skill } }, // nuk lejon dublikatë
+      { new: true }
     ).select("-passwordHash");
 
-    res.json({ user });
-  } catch (error) {
-    console.error("updateMyProfile error:", error.message);
-    res.status(500).json({ message: "Gabim serveri gjatë përditësimit të profilit" });
+    res.json(user);
+  } catch (err) {
+    console.error("addSkill error:", err.message);
+    res.status(500).json({ message: "Gabim serveri" });
   }
-};
+}
 
-/**
- * POST /api/profile/experience
- * Shton një experience të re
- */
-export const addExperience = async (req, res) => {
+// DELETE /api/profile/skills/:skillName
+export async function removeSkill(req, res) {
   try {
-    const exp = req.body; // merr title, company, ...
+    const skillName = decodeURIComponent(req.params.skillName);
 
-    if (!exp.title || !exp.company) {
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { $pull: { skills: skillName } },
+      { new: true }
+    ).select("-passwordHash");
+
+    res.json(user);
+  } catch (err) {
+    console.error("removeSkill error:", err.message);
+    res.status(500).json({ message: "Gabim serveri" });
+  }
+}
+
+// POST /api/profile/experiences
+export async function addExperience(req, res) {
+  try {
+    const { jobTitle, company, period, location, description } = req.body;
+
+    if (!jobTitle || !company) {
       return res
         .status(400)
-        .json({ message: "Titulli dhe kompania janë të detyrueshme" });
+        .json({ message: "Pozicioni dhe kompania janë të detyrueshme" });
     }
 
     const user = await User.findById(req.userId);
-    user.experiences.push(exp);
+    if (!user) return res.status(404).json({ message: "Përdoruesi nuk u gjet" });
+
+    user.experiences.push({ jobTitle, company, period, location, description });
+
     await user.save();
-
-    res.status(201).json({ experiences: user.experiences });
-  } catch (error) {
-    console.error("addExperience error:", error.message);
-    res.status(500).json({ message: "Gabim serveri gjatë shtimit të eksperiencës" });
+    const updated = await User.findById(req.userId).select("-passwordHash");
+    res.json(updated);
+  } catch (err) {
+    console.error("addExperience error:", err.message);
+    res.status(500).json({ message: "Gabim serveri" });
   }
-};
+}
 
-/**
- * DELETE /api/profile/experience/:id
- */
-export const deleteExperience = async (req, res) => {
+// DELETE /api/profile/experiences/:expId
+export async function deleteExperience(req, res) {
   try {
-    const expId = req.params.id;
+    const { expId } = req.params;
 
-    const user = await User.findById(req.userId);
-    user.experiences = user.experiences.filter(
-      (exp) => exp._id.toString() !== expId
-    );
-    await user.save();
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { $pull: { experiences: { _id: expId } } },
+      { new: true }
+    ).select("-passwordHash");
 
-    res.json({ experiences: user.experiences });
-  } catch (error) {
-    console.error("deleteExperience error:", error.message);
-    res.status(500).json({ message: "Gabim serveri gjatë fshirjes së eksperiencës" });
+    res.json(user);
+  } catch (err) {
+    console.error("deleteExperience error:", err.message);
+    res.status(500).json({ message: "Gabim serveri" });
   }
-};
+}
 
-/**
- * POST /api/profile/project
- * Shton një projekt
- */
-export const addProject = async (req, res) => {
+// POST /api/profile/projects
+export async function addProject(req, res) {
   try {
-    const proj = req.body;
-    if (!proj.name) {
-      return res
-        .status(400)
-        .json({ message: "Emri i projektit është i detyrueshëm" });
+    const { name, description, link } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ message: "Titulli i projektit është i detyrueshëm" });
     }
 
     const user = await User.findById(req.userId);
-    user.projects.push(proj);
+    if (!user) return res.status(404).json({ message: "Përdoruesi nuk u gjet" });
+
+    user.projects.push({ name, description, link });
     await user.save();
 
-    res.status(201).json({ projects: user.projects });
-  } catch (error) {
-    console.error("addProject error:", error.message);
-    res.status(500).json({ message: "Gabim serveri gjatë shtimit të projektit" });
+    const updated = await User.findById(req.userId).select("-passwordHash");
+    res.json(updated);
+  } catch (err) {
+    console.error("addProject error:", err.message);
+    res.status(500).json({ message: "Gabim serveri" });
   }
-};
+}
 
-/**
- * DELETE /api/profile/project/:id
- */
-export const deleteProject = async (req, res) => {
+// DELETE /api/profile/projects/:projectId
+export async function deleteProject(req, res) {
   try {
-    const projectId = req.params.id;
+    const { projectId } = req.params;
 
-    const user = await User.findById(req.userId);
-    user.projects = user.projects.filter(
-      (p) => p._id.toString() !== projectId
-    );
-    await user.save();
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { $pull: { projects: { _id: projectId } } },
+      { new: true }
+    ).select("-passwordHash");
 
-    res.json({ projects: user.projects });
-  } catch (error) {
-    console.error("deleteProject error:", error.message);
-    res.status(500).json({ message: "Gabim serveri gjatë fshirjes së projektit" });
+    res.json(user);
+  } catch (err) {
+    console.error("deleteProject error:", err.message);
+    res.status(500).json({ message: "Gabim serveri" });
   }
-};
+}

@@ -51,7 +51,7 @@ function App() {
           <Route path="/companies" element={<Companies />} />
           <Route path="/feed" element={<Feed />} />
 
-          {/* Vetem kur NUK je i loguar */}
+          {/* Vetëm kur NUK je i loguar */}
           <Route
             path="/login"
             element={
@@ -69,7 +69,7 @@ function App() {
             }
           />
 
-          {/* Vetem user i loguar */}
+          {/* Vetëm user i loguar */}
           <Route
             path="/profile"
             element={
@@ -79,7 +79,7 @@ function App() {
             }
           />
 
-          {/* Vetem employer/admin */}
+          {/* Vetëm employer / admin */}
           <Route
             path="/employer/jobs/new"
             element={

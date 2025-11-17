@@ -34,7 +34,7 @@ export async function requireAuth(req, res, next) {
   }
 }
 
-// alias, nëse diku përdoret emri i vjetër
+// alias nëse diku quhet protect
 export const protect = requireAuth;
 
 // middleware për role specifike (p.sh. employer)

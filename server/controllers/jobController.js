@@ -54,7 +54,7 @@ export async function getJobById(req, res) {
   }
 }
 
-// POST /api/jobs  (vetem employer)
+// POST /api/jobs  (vetëm employer)
 export async function createJob(req, res) {
   try {
     const {
@@ -100,11 +100,13 @@ export async function createJob(req, res) {
     res.status(201).json(job);
   } catch (err) {
     console.error("createJob error:", err.message);
-    res.status(500).json({ message: "Gabim serveri gjatë krijimit të punës" });
+    res
+      .status(500)
+      .json({ message: "Gabim serveri gjatë krijimit të punës" });
   }
 }
 
-// PUT /api/jobs/:id (vetem employer + owner)
+// PUT /api/jobs/:id (vetëm employer + owner)
 export async function updateJob(req, res) {
   try {
     const job = await Job.findById(req.params.id);
@@ -156,7 +158,9 @@ export async function updateJob(req, res) {
     res.json(job);
   } catch (err) {
     console.error("updateJob error:", err.message);
-    res.status(500).json({ message: "Gabim serveri gjatë përditësimit të punës" });
+    res
+      .status(500)
+      .json({ message: "Gabim serveri gjatë përditësimit të punës" });
   }
 }
 
@@ -176,7 +180,9 @@ export async function deleteJob(req, res) {
     res.json({ message: "Puna u fshi" });
   } catch (err) {
     console.error("deleteJob error:", err.message);
-    res.status(500).json({ message: "Gabim serveri gjatë fshirjes së punës" });
+    res
+      .status(500)
+      .json({ message: "Gabim serveri gjatë fshirjes së punës" });
   }
 }
 
@@ -186,7 +192,6 @@ export async function applyToJob(req, res) {
     const job = await Job.findById(req.params.id);
     if (!job) return res.status(404).json({ message: "Puna nuk u gjet" });
 
-    // kontrollo nëse ke aplikuar më parë
     const already = job.applicants.some(
       (a) => a.user.toString() === req.userId.toString()
     );

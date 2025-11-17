@@ -14,7 +14,7 @@ const jobSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     companyName: { type: String, required: true },
-    location: { type: String, default: "" }, // tekst i lirë: "Tiranë, Shqipëri"
+    location: { type: String, default: "" }, // p.sh. "Tiranë, Shqipëri"
     city: { type: String, default: "" }, // p.sh. "Tiranë"
 
     type: {
